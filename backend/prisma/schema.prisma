@@ -1,0 +1,88 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id              Int              @id @default(autoincrement())
+  name            String
+  email           String           @unique
+  password        String
+  role            String           @default("user")
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  profile         CustomerProfile?
+  orders          Order[]
+}
+
+model CustomerProfile {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  phone     String?
+  address   String?
+  city      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Category {
+  id        Int        @id @default(autoincrement())
+  name      String     @unique
+  image     String
+  menuItems MenuItem[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model MenuItem {
+  id          Int         @id @default(autoincrement())
+  name        String      @unique
+  description String
+  price       Float
+  image       String
+  categoryId  Int
+  isAvailable Boolean     @default(true)
+  sizes       Json        @default("[]")
+  extras      Json        @default("[]")
+  category    Category    @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  orderItems  OrderItem[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model Order {
+  id                  Int         @id @default(autoincrement())
+  userId              Int?
+  user                User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  name                String
+  email               String
+  phone               String
+  address             String
+  city                String
+  specialInstructions String?
+  status              String      @default("Pending")
+  total               Float
+  tax                 Float
+  deliveryCharge      Float
+  grandTotal          Float
+  orderItems          OrderItem[]
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+}
+
+model OrderItem {
+  id             Int      @id @default(autoincrement())
+  orderId        Int
+  order          Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  menuItemId     Int
+  menuItem       MenuItem @relation(fields: [menuItemId], references: [id], onDelete: Restrict)
+  quantity       Int
+  price          Float
+  selectedSize   Json?
+  selectedExtras Json     @default("[]")
+}

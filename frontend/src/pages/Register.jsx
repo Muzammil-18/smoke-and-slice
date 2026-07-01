@@ -1,0 +1,122 @@
+import React, { useState, useEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { Flame, Loader2 } from 'lucide-react'
+import toast from 'react-hot-toast'
+
+function Register({ user, onLogin }) {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user) {
+      navigate('/menu');
+    }
+  }, [user, navigate]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || 'Registration failed');
+      }
+
+      onLogin(data);
+      toast.success('Account created successfully! 🎉');
+      navigate('/menu');
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-[70vh] flex items-center justify-center p-4">
+      <div className="w-full max-w-md bg-neutral-900 border border-neutral-850 rounded-3xl p-6 sm:p-8 shadow-2xl">
+        <div className="flex flex-col items-center mb-8">
+          <Flame className="w-10 h-10 text-primary animate-pulse mb-3" />
+          <h1 className="text-2xl font-extrabold text-white tracking-wide">Create Account</h1>
+          <p className="text-xs text-neutral-450 mt-1">Get started with Smoke & Slice today</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label className="block text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">
+              Full Name
+            </label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              className="w-full bg-neutral-950 border border-neutral-850 rounded-xl px-4 py-3 text-white text-sm"
+              placeholder="John Doe"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">
+              Email Address
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="w-full bg-neutral-950 border border-neutral-850 rounded-xl px-4 py-3 text-white text-sm"
+              placeholder="john@example.com"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">
+              Password
+            </label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="w-full bg-neutral-950 border border-neutral-850 rounded-xl px-4 py-3 text-white text-sm"
+              placeholder="••••••••"
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-primary hover:bg-primary-dark text-white font-extrabold py-3.5 rounded-xl transition-all duration-200 text-sm shadow-lg shadow-primary/20 flex justify-center items-center"
+          >
+            {loading ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <span>Sign Up</span>
+            )}
+          </button>
+        </form>
+
+        <div className="mt-8 pt-6 border-t border-neutral-850 text-center text-sm text-neutral-400">
+          <span>Already have an account? </span>
+          <Link to="/login" className="text-primary hover:underline font-semibold">
+            Sign In
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default Register;
