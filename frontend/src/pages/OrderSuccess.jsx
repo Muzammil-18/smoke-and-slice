@@ -10,7 +10,14 @@ function OrderSuccess() {
   useEffect(() => {
     const fetchOrder = async () => {
       try {
-        const res = await fetch(`/api/orders/${id}`);
+        const savedUser = localStorage.getItem('user');
+        const user = savedUser ? JSON.parse(savedUser) : null;
+        const headers = {};
+        if (user && user.token) {
+          headers['Authorization'] = `Bearer ${user.token}`;
+        }
+
+        const res = await fetch(`/api/orders/${id}`, { headers });
         if (res.ok) {
           const data = await res.json();
           setOrder(data);
@@ -41,8 +48,8 @@ function OrderSuccess() {
         </div>
         <div className="space-y-2">
           <h3 className="text-xl font-bold text-white">Order Confirmed!</h3>
-          <p className="text-neutral-450 text-xs sm:text-sm">
-            Thank you for your order. We were unable to fetch live details, but your order has been received and is being processed.
+          <p className="text-neutral-455 text-xs sm:text-sm">
+            Thank you for your order. We've received it and are processing it now!
           </p>
         </div>
         <Link to="/" className="inline-block bg-primary hover:bg-primary-dark text-white font-bold px-6 py-3 rounded-xl text-sm transition-colors">

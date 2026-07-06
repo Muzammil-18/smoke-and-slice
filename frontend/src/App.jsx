@@ -116,7 +116,7 @@ function App() {
           <Route path="menu/:id" element={<ProductDetails addToCart={addToCart} />} />
           <Route path="cart" element={<Cart cart={cart} onUpdateQty={updateCartQuantity} onRemove={removeFromCart} />} />
           <Route path="checkout" element={<Checkout user={user} cart={cart} onClearCart={clearCart} />} />
-          <Route path="order-success/:id" element={<OrderSuccess />} />
+          <Route path="order-success/:id" element={<OrderSuccess user={user} />} />
           <Route path="contact" element={<Contact />} />
           <Route path="login" element={<Login user={user} onLogin={loginUser} />} />
           <Route path="register" element={<Register user={user} onLogin={loginUser} />} />

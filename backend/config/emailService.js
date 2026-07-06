@@ -1,14 +1,19 @@
-
 const nodemailer = require('nodemailer');
 
 const createTransporter = () => {
   if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
     return nodemailer.createTransport({
-      service: process.env.EMAIL_SERVICE || 'gmail',
+      host: 'smtp.gmail.com',
+      port: 465,
+      secure: true,
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
       },
+      connectionTimeout: 15000,
+      greetingTimeout: 15000,
+      socketTimeout: 15000,
+      family: 4
     });
   }
   return nodemailer.createTransport({
@@ -24,8 +29,6 @@ const createTransporter = () => {
 const buildInvoiceHTML = (order) => {
   const itemRows = order.orderItems.map((item) => {
     const extras = Array.isArray(item.selectedExtras) ? item.selectedExtras : [];
-    
-    // Add Size display in Email
     const sizeHTML = item.selectedSize ? `<span style="font-size:11px;color:#FF3838;margin-left:4px;">(${item.selectedSize.name})</span>` : '';
     
     const extrasHTML = extras.length > 0
@@ -117,15 +120,8 @@ const buildInvoiceHTML = (order) => {
         </div>
       </div>
 
-      <div style="background:#1c1c1e;border:1px solid #2a2a2a;border-radius:16px;padding:20px;text-align:center;margin-bottom:20px;">
-        <div style="font-size:13px;color:#888;">Estimated Delivery Time</div>
-        <div style="font-size:20px;font-weight:800;color:#fff;margin-top:4px;">35 – 45 Minutes</div>
-        <div style="font-size:12px;color:#555;margin-top:6px;">Our pitmasters are already firing up the grill! 🔥</div>
-      </div>
-
       <div style="text-align:center;padding:20px 0;">
         <div style="font-size:12px;color:#444;">© ${new Date().getFullYear()} Smoke &amp; Slice. All rights reserved.</div>
-        <div style="font-size:12px;color:#444;margin-top:4px;">100 Smokehouse Way, Austin, TX 78701</div>
       </div>
     </div>
   </body>
@@ -139,26 +135,18 @@ const sendOrderConfirmationEmail = async (order) => {
     const htmlContent = buildInvoiceHTML(order);
 
     const mailOptions = {
-      from: `"Smoke & Slice" <${process.env.EMAIL_USER || 'orders@smokeslice.com'}>`,
+      from: `"Smoke & Slice" <${process.env.EMAIL_USER}>`,
       to: order.email,
       subject: `🔥 Order Confirmed! Invoice #${order.id} - Smoke & Slice`,
       html: htmlContent,
     };
 
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-      console.log('\n========== ORDER INVOICE EMAIL (No SMTP configured) ==========');
-      console.log(`To: ${order.email}`);
-      console.log(`Subject: Order Confirmed! Invoice #${order.id}`);
-      console.log(`Order Total: $${order.grandTotal.toFixed(2)}`);
-      console.log('Configure EMAIL_USER and EMAIL_PASS in .env to send real emails.');
-      console.log('==============================================================\n');
-      return;
-    }
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) return;
 
     const info = await transporter.sendMail(mailOptions);
-    console.log(`Order confirmation email sent to ${order.email}: ${info.messageId}`);
+    console.log(`Email successfully sent: ${info.messageId}`);
   } catch (error) {
-    console.error('Failed to send order confirmation email:', error.message);
+    console.error('Email Error:', error.message);
   }
 };
 
